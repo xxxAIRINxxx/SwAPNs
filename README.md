@@ -92,7 +92,6 @@ replaced the following methods.
 
 ## Installation
 
-To use SwAlert with a project targeting iOS 7, you must include the
 SwAPNs.swift source file directly in your project.
 
 
