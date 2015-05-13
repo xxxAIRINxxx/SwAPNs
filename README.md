@@ -89,21 +89,12 @@ replaced the following methods.
 * iOS 7.0+
 * Swift lang 1.2+
 * ARC
-* CocoaPods 0.36+ (if you needed)
 
 ## Installation
-
-### iOS7
 
 To use SwAlert with a project targeting iOS 7, you must include the
 SwAPNs.swift source file directly in your project.
 
-### iOS 8 or later
-
-ARNAlert is available through [CocoaPods](http://cocoapods.org). To install
-it, simply add the following line to your Podfile:
-
-    pod "SwAPNs"
 
 ## License
 
