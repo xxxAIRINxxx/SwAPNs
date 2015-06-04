@@ -28,6 +28,7 @@ public class SwAPNs: NSObject {
     static var badgePushHandler : DidReceivedPushHandler?
     static var soundPushHandler : DidReceivedPushHandler?
     static var alertPushHandler : DidReceivedPushHandler?
+    static var receivedAnyHandler : DidReceivedPushHandler?
     static var backgroundFetchHandler : DidReceivedBackgroundFetchHandler?
     static var handleActionHandler : DidReceivedHandleActionHandler?
     
@@ -114,15 +115,11 @@ private class Push: NSObject {
     }
     
     class func didFailToRegister(error: NSError) {
-        if let _hander = SwAPNs.failToRegisterPushHandler {
-            _hander(error)
-        }
+        SwAPNs.failToRegisterPushHandler?(error)
     }
     
     class func didRegisterDeviceToken(deviceToken: NSData) {
-        if let _hander = SwAPNs.registerDeviceTokenHandler {
-            _hander(deviceToken)
-        }
+        SwAPNs.registerDeviceTokenHandler?(deviceToken)
     }
     
     class func pushTypes() -> (pushBadge: Bool, pushSound: Bool, pushAlert: Bool) {
@@ -189,35 +186,23 @@ private class Push: NSObject {
         let pushTypes = Push.pushTypes()
         
         if pushTypes.pushBadge == true {
-            if let _hander = SwAPNs.badgePushHandler {
-                _hander(userInfo)
-            }
+            SwAPNs.badgePushHandler?(userInfo)
         }
         if pushTypes.pushSound == true {
-            if let _hander = SwAPNs.soundPushHandler {
-                _hander(userInfo)
-            }
+            SwAPNs.soundPushHandler?(userInfo)
         }
         if pushTypes.pushAlert == true {
-            if let _hander = SwAPNs.alertPushHandler {
-                _hander(userInfo)
-            }
+            SwAPNs.alertPushHandler?(userInfo)
         }
-        if let _hander = SwAPNs.alertPushHandler {
-            _hander(userInfo)
-        }
+        SwAPNs.receivedAnyHandler?(userInfo)
     }
     
     class func receivedBackgroundFetch(userInfo: [NSObject : AnyObject], completion: (UIBackgroundFetchResult) -> Void) {
-        if let _hander = SwAPNs.backgroundFetchHandler {
-            _hander(userInfo, completion)
-        }
+        SwAPNs.backgroundFetchHandler?(userInfo, completion)
     }
    
     class func receivedHandleAction(identifier: String?, userInfo: [NSObject : AnyObject], completion: () -> Void) {
-        if let _hander = SwAPNs.handleActionHandler {
-            _hander(identifier, userInfo, completion)
-        }
+        SwAPNs.handleActionHandler?(identifier, userInfo, completion)
     }
 }
 
