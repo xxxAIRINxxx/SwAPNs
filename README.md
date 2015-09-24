@@ -1,10 +1,5 @@
 # SwAPNs
 
-[![CI Status](http://img.shields.io/travis/Airin/ARNAlert.svg?style=flat)](https://travis-ci.org/xxxAIRINxxx/SwAPNs)
-[![Version](https://img.shields.io/cocoapods/v/ARNAlert.svg?style=flat)](http://cocoadocs.org/docsets/SwAPNs)
-[![License](https://img.shields.io/cocoapods/l/ARNAlert.svg?style=flat)](http://cocoadocs.org/docsets/SwAPNs)
-[![Platform](https://img.shields.io/cocoapods/p/ARNAlert.svg?style=flat)](http://cocoadocs.org/docsets/SwAPNs)
-
 Wrap the Apple Push Notification Service (Remote Notification) written in Swift.
 
 ## Usage
@@ -13,11 +8,7 @@ Wrap the Apple Push Notification Service (Remote Notification) written in Swift.
 
 SwAPNs.setup()
 
-if UIDevice.isiOS8orLater() {
-    SwAPNs.registerType((UIUserNotificationType.Badge | UIUserNotificationType.Sound | UIUserNotificationType.Alert), categories: nil)
-} else {
-    SwAPNs.registerType((UIRemoteNotificationType.Badge | UIRemoteNotificationType.Sound | UIRemoteNotificationType.Alert), categories: nil)
-}
+SwAPNs.registerType((UIUserNotificationType.Badge | UIUserNotificationType.Sound | UIUserNotificationType.Alert), categories: nil)
 
 SwAPNs.failToRegisterPushHandler = { (error: NSError) in
     // didFailToRegisterForRemoteNotificationsWithError
@@ -50,7 +41,6 @@ SwAPNs.backgroundFetchHandler = { (userInfo: [NSObject : AnyObject], completion:
     println(completion)
 }
 
-// iOS 8.0+ Only
 SwAPNs.handleActionHandler = { (identifier: String?, userInfo: [NSObject : AnyObject], completion: () -> Void) in
     // handleActionWithIdentifier forRemoteNotification
     println(identifier)
@@ -86,9 +76,9 @@ replaced the following methods.
 
 ## Requirements
 
-* iOS 7.0+
-* Swift lang 1.2+
-* ARC
+* Xcode 7.0
+* iOS 8.0+
+* Swift 2.0
 
 ## Installation
 
@@ -97,4 +87,4 @@ SwAPNs.swift source file directly in your project.
 
 ## License
 
-SwAPNs is available under the MIT license. See the LICENSE file for more info.
+MIT license. See the LICENSE file for more info.

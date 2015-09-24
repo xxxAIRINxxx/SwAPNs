@@ -33,8 +33,8 @@ public class SwAPNs: NSObject {
     static var handleActionHandler : DidReceivedHandleActionHandler?
     
     class func convertDeviceToken(deviceToken: NSData) -> String {
-        var deviceTokenString = deviceToken.description.stringByTrimmingCharactersInSet(NSCharacterSet(charactersInString: "<>"))
-        return deviceTokenString.stringByReplacingOccurrencesOfString(" ", withString: "", options: nil, range: nil)
+        let deviceTokenString = deviceToken.description.stringByTrimmingCharactersInSet(NSCharacterSet(charactersInString: "<>"))
+        return deviceTokenString.stringByReplacingOccurrencesOfString(" ", withString: "", options: [], range: nil)
     }
     
     class func setup() {
@@ -47,8 +47,7 @@ public class SwAPNs: NSObject {
             object: nil)
     }
     
-    // categories is iOS8 Only uses
-    class func registerType<T: RawOptionSetType>(types: T, categories: Set<NSObject>?) {
+    class func registerType<T: OptionSetType>(types: T, categories: Set<UIUserNotificationCategory>?) {
         Push.registerType(types, categories: categories)
     }
     
@@ -77,41 +76,35 @@ private class Push: NSObject {
         Push.replaceClassMethod(aClass, sel: Selector("application:didRegisterForRemoteNotificationsWithDeviceToken:"), block: unsafeBitCast({
             (appDelegate: AnyObject, app: AnyObject, data: NSData) in
             Push.didRegisterDeviceToken(data)
-        } as @objc_block (AnyObject, AnyObject, NSData) -> Void , AnyObject.self))
+        } as @convention(block) (AnyObject, AnyObject, NSData) -> Void , AnyObject.self))
         
         Push.replaceClassMethod(aClass, sel: Selector("application:didFailToRegisterForRemoteNotificationsWithError:"), block: unsafeBitCast({
             (appDelegate: AnyObject, app: AnyObject, error: NSError) in
             Push.didFailToRegister(error)
-        } as @objc_block (AnyObject, AnyObject, NSError) -> Void , AnyObject.self))
+        } as @convention(block) (AnyObject, AnyObject, NSError) -> Void , AnyObject.self))
         
         Push.replaceClassMethod(aClass, sel: Selector("application:didReceiveRemoteNotification:"), block: unsafeBitCast({
             (appDelegate: AnyObject, app: AnyObject, userInfo: [NSObject : AnyObject]) in
             Push.receivedPush(userInfo)
-        } as @objc_block (AnyObject, AnyObject, [NSObject : AnyObject]) -> Void , AnyObject.self))
+        } as @convention(block) (AnyObject, AnyObject, [NSObject : AnyObject]) -> Void , AnyObject.self))
         
         Push.replaceClassMethod(aClass, sel: Selector("application:didReceiveRemoteNotification:fetchCompletionHandler:"), block: unsafeBitCast({
             (appDelegate: AnyObject, app: AnyObject, userInfo: [NSObject : AnyObject], completion: (UIBackgroundFetchResult) -> Void) in
             Push.receivedBackgroundFetch(userInfo, completion: completion)
-        } as @objc_block (AnyObject, AnyObject, [NSObject : AnyObject], (UIBackgroundFetchResult) -> Void) -> Void , AnyObject.self))
+        } as @convention(block) (AnyObject, AnyObject, [NSObject : AnyObject], (UIBackgroundFetchResult) -> Void) -> Void , AnyObject.self))
         
-        if UIDevice.isiOS8orLater() {
-            Push.replaceClassMethod(aClass, sel: Selector("application:handleActionWithIdentifier:forRemoteNotification:completionHandler:"), block: unsafeBitCast({
-                (appDelegate: AnyObject, app: AnyObject, identifier: String?, userInfo: [NSObject : AnyObject], completion: () -> Void) in
-                Push.receivedHandleAction(identifier, userInfo: userInfo, completion: completion)
-            } as @objc_block (AnyObject, AnyObject, String?, [NSObject : AnyObject], () -> Void) -> Void , AnyObject.self))
-        }
+        Push.replaceClassMethod(aClass, sel: Selector("application:handleActionWithIdentifier:forRemoteNotification:completionHandler:"), block: unsafeBitCast({
+            (appDelegate: AnyObject, app: AnyObject, identifier: String?, userInfo: [NSObject : AnyObject], completion: () -> Void) in
+            Push.receivedHandleAction(identifier, userInfo: userInfo, completion: completion)
+        } as @convention(block) (AnyObject, AnyObject, String?, [NSObject : AnyObject], () -> Void) -> Void , AnyObject.self))
     }
     
-    class func registerType<T: RawOptionSetType>(types: T, categories: Set<NSObject>?) {
+    class func registerType<T: OptionSetType>(types: T, categories: Set<UIUserNotificationCategory>?) {
         let app = UIApplication.sharedApplication()
         
-        if UIDevice.isiOS8orLater() {
-            let settings = UIUserNotificationSettings(forTypes: types as! UIUserNotificationType, categories: categories)
-            app.registerUserNotificationSettings(settings)
-            app.registerForRemoteNotifications()
-        } else {
-            app.registerForRemoteNotificationTypes(types as! UIRemoteNotificationType)
-        }
+        let settings = UIUserNotificationSettings(forTypes: types as! UIUserNotificationType, categories: categories)
+        app.registerUserNotificationSettings(settings)
+        app.registerForRemoteNotifications()
     }
     
     class func didFailToRegister(error: NSError) {
@@ -127,52 +120,27 @@ private class Push: NSObject {
         var pushSound = false
         var pushAlert = false
         
-        if UIDevice.isiOS8orLater() {
-            let types = UIApplication.sharedApplication().currentUserNotificationSettings().types
-            if types == .None {
-            } else if types == .Badge {
-                pushBadge = true
-            } else if types == .Sound {
-                pushSound = true
-            } else if types == .Alert {
-                pushAlert = true
-            } else if types == .Badge | .Alert {
-                pushBadge = true
-                pushAlert = true
-            } else if types == .Badge | .Sound {
-                pushBadge = true
-                pushSound = true
-            } else if types == .Alert | .Sound {
-                pushSound = true
-                pushAlert = true
-            } else if types == .Badge | .Sound | .Alert {
-                pushBadge = true
-                pushSound = true
-                pushAlert = true
-            }
-        } else {
-            var types = UIApplication.sharedApplication().enabledRemoteNotificationTypes()
-            if types == .None {
-            } else if types == .Badge {
-                pushBadge = true
-            } else if types == .Sound {
-                pushSound = true
-            } else if types == .Alert {
-                pushAlert = true
-            } else if types == .Badge | .Alert {
-                pushBadge = true
-                pushAlert = true
-            } else if types == .Badge | .Sound {
-                pushBadge = true
-                pushSound = true
-            } else if types == .Alert | .Sound {
-                pushSound = true
-                pushAlert = true
-            } else if types == .Badge | .Sound | .Alert {
-                pushBadge = true
-                pushSound = true
-                pushAlert = true
-            }
+        let types = UIApplication.sharedApplication().currentUserNotificationSettings()!.types
+        if types == .None {
+        } else if types == .Badge {
+            pushBadge = true
+        } else if types == .Sound {
+            pushSound = true
+        } else if types == .Alert {
+            pushAlert = true
+        } else if types == UIUserNotificationType.Badge.union(.Alert) {
+            pushBadge = true
+            pushAlert = true
+        } else if types == UIUserNotificationType.Badge.union(.Sound) {
+            pushBadge = true
+            pushSound = true
+        } else if types == UIUserNotificationType.Alert.union(.Sound) {
+            pushSound = true
+            pushAlert = true
+        } else if types == UIUserNotificationType.Badge.union(.Sound).union(.Alert) {
+            pushBadge = true
+            pushSound = true
+            pushAlert = true
         }
         
         return (pushBadge, pushSound, pushAlert)
@@ -203,24 +171,5 @@ private class Push: NSObject {
    
     class func receivedHandleAction(identifier: String?, userInfo: [NSObject : AnyObject], completion: () -> Void) {
         SwAPNs.handleActionHandler?(identifier, userInfo, completion)
-    }
-}
-
-// MARK: - UIDevice Extension
-
-public extension UIDevice {
-    
-    class func iosVersion() -> Float {
-        let versionString =  UIDevice.currentDevice().systemVersion
-        return NSString(string: versionString).floatValue
-    }
-    
-    class func isiOS8orLater() ->Bool {
-        let version = UIDevice.iosVersion()
-        
-        if version >= 8.0 {
-            return true
-        }
-        return false
     }
 }
