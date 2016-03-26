@@ -42,7 +42,7 @@ public class SwAPNs: NSObject {
         
         NSNotificationCenter.defaultCenter().addObserver(
             SwAPNs.sharedInstance,
-            selector: "handleAppDidFinishLaunchingNotification:",
+            selector: #selector(SwAPNs.handleAppDidFinishLaunchingNotification(_:)),
             name: UIApplicationDidFinishLaunchingNotification,
             object: nil)
     }
@@ -73,27 +73,27 @@ private class Push: NSObject {
         let aClass: AnyClass! = object_getClass(delegate)
         // @see : http://stackoverflow.com/questions/28211973/swift-closure-as-anyobject
         
-        Push.replaceClassMethod(aClass, sel: Selector("application:didRegisterForRemoteNotificationsWithDeviceToken:"), block: unsafeBitCast({
+        Push.replaceClassMethod(aClass, sel: #selector(UIApplicationDelegate.application(_:didRegisterForRemoteNotificationsWithDeviceToken:)), block: unsafeBitCast({
             (appDelegate: AnyObject, app: AnyObject, data: NSData) in
             Push.didRegisterDeviceToken(data)
         } as @convention(block) (AnyObject, AnyObject, NSData) -> Void , AnyObject.self))
         
-        Push.replaceClassMethod(aClass, sel: Selector("application:didFailToRegisterForRemoteNotificationsWithError:"), block: unsafeBitCast({
+        Push.replaceClassMethod(aClass, sel: #selector(UIApplicationDelegate.application(_:didFailToRegisterForRemoteNotificationsWithError:)), block: unsafeBitCast({
             (appDelegate: AnyObject, app: AnyObject, error: NSError) in
             Push.didFailToRegister(error)
         } as @convention(block) (AnyObject, AnyObject, NSError) -> Void , AnyObject.self))
         
-        Push.replaceClassMethod(aClass, sel: Selector("application:didReceiveRemoteNotification:"), block: unsafeBitCast({
+        Push.replaceClassMethod(aClass, sel: #selector(UIApplicationDelegate.application(_:didReceiveRemoteNotification:)), block: unsafeBitCast({
             (appDelegate: AnyObject, app: AnyObject, userInfo: [NSObject : AnyObject]) in
             Push.receivedPush(userInfo)
         } as @convention(block) (AnyObject, AnyObject, [NSObject : AnyObject]) -> Void , AnyObject.self))
         
-        Push.replaceClassMethod(aClass, sel: Selector("application:didReceiveRemoteNotification:fetchCompletionHandler:"), block: unsafeBitCast({
+        Push.replaceClassMethod(aClass, sel: #selector(UIApplicationDelegate.application(_:didReceiveRemoteNotification:fetchCompletionHandler:)), block: unsafeBitCast({
             (appDelegate: AnyObject, app: AnyObject, userInfo: [NSObject : AnyObject], completion: (UIBackgroundFetchResult) -> Void) in
             Push.receivedBackgroundFetch(userInfo, completion: completion)
         } as @convention(block) (AnyObject, AnyObject, [NSObject : AnyObject], (UIBackgroundFetchResult) -> Void) -> Void , AnyObject.self))
         
-        Push.replaceClassMethod(aClass, sel: Selector("application:handleActionWithIdentifier:forRemoteNotification:completionHandler:"), block: unsafeBitCast({
+        Push.replaceClassMethod(aClass, sel: #selector(UIApplicationDelegate.application(_:handleActionWithIdentifier:forRemoteNotification:completionHandler:)), block: unsafeBitCast({
             (appDelegate: AnyObject, app: AnyObject, identifier: String?, userInfo: [NSObject : AnyObject], completion: () -> Void) in
             Push.receivedHandleAction(identifier, userInfo: userInfo, completion: completion)
         } as @convention(block) (AnyObject, AnyObject, String?, [NSObject : AnyObject], () -> Void) -> Void , AnyObject.self))
