@@ -3,7 +3,7 @@
 //  SwAPNs
 //
 //  Created by xxxAIRINxxx on 2015/05/13.
-//  Copyright (c) 2015 xxxAIRINxxx. All rights reserved.
+//  Copyright (c) 2016 xxxAIRINxxx. All rights reserved.
 //
 
 import UIKit
@@ -15,39 +15,39 @@ public typealias DidReceivedPushHandler = [NSObject : AnyObject] -> Void
 public typealias DidReceivedBackgroundFetchHandler = ([NSObject : AnyObject], (UIBackgroundFetchResult) -> Void) -> Void
 public typealias DidReceivedHandleActionHandler = (String?, [NSObject : AnyObject], () -> Void) -> Void
 
-public class SwAPNs: NSObject {
+public final class SwAPNs: NSObject {
     
-    static var sharedInstance = SwAPNs()
+    static let shared = SwAPNs()
     
-    private var push : Push = Push()
+    private let push : Push = Push()
     
     static var canReceivedPush : Bool = true
     
-    static var failToRegisterPushHandler : DidFailToRegisterPushHandler?
-    static var registerDeviceTokenHandler : DidRegisterDeviceTokenHandler?
-    static var badgePushHandler : DidReceivedPushHandler?
-    static var soundPushHandler : DidReceivedPushHandler?
-    static var alertPushHandler : DidReceivedPushHandler?
-    static var receivedAnyHandler : DidReceivedPushHandler?
-    static var backgroundFetchHandler : DidReceivedBackgroundFetchHandler?
-    static var handleActionHandler : DidReceivedHandleActionHandler?
+    public static var failToRegisterPushHandler : DidFailToRegisterPushHandler?
+    public static var registerDeviceTokenHandler : DidRegisterDeviceTokenHandler?
+    public static var badgePushHandler : DidReceivedPushHandler?
+    public static var soundPushHandler : DidReceivedPushHandler?
+    public static var alertPushHandler : DidReceivedPushHandler?
+    public static var receivedAnyHandler : DidReceivedPushHandler?
+    public static var backgroundFetchHandler : DidReceivedBackgroundFetchHandler?
+    public static var handleActionHandler : DidReceivedHandleActionHandler?
     
-    class func convertDeviceToken(deviceToken: NSData) -> String {
+    public static func convertDeviceToken(deviceToken: NSData) -> String {
         let deviceTokenString = deviceToken.description.stringByTrimmingCharactersInSet(NSCharacterSet(charactersInString: "<>"))
         return deviceTokenString.stringByReplacingOccurrencesOfString(" ", withString: "", options: [], range: nil)
     }
     
-    class func setup() {
-        SwAPNs.sharedInstance.push.swizzle()
+    public static func setup() {
+        SwAPNs.shared.push.swizzle()
         
         NSNotificationCenter.defaultCenter().addObserver(
-            SwAPNs.sharedInstance,
+            SwAPNs.shared,
             selector: #selector(SwAPNs.handleAppDidFinishLaunchingNotification(_:)),
             name: UIApplicationDidFinishLaunchingNotification,
             object: nil)
     }
     
-    class func registerType<T: OptionSetType>(types: T, categories: Set<UIUserNotificationCategory>?) {
+    public static func registerType(types: UIUserNotificationType, categories: Set<UIUserNotificationCategory>?) {
         Push.registerType(types, categories: categories)
     }
     
@@ -60,9 +60,9 @@ public class SwAPNs: NSObject {
     }
 }
 
-private class Push: NSObject {
+private final class Push: NSObject {
     
-    class func replaceClassMethod(targetClass: AnyClass, sel: Selector, block: AnyObject!) {
+    static func replaceClassMethod(targetClass: AnyClass, sel: Selector, block: AnyObject!) {
         let newIMP = imp_implementationWithBlock(block)
         let types = method_getTypeEncoding(class_getInstanceMethod(targetClass, sel))
         class_replaceMethod(targetClass, sel, newIMP, types)
@@ -99,23 +99,23 @@ private class Push: NSObject {
         } as @convention(block) (AnyObject, AnyObject, String?, [NSObject : AnyObject], () -> Void) -> Void , AnyObject.self))
     }
     
-    class func registerType<T: OptionSetType>(types: T, categories: Set<UIUserNotificationCategory>?) {
+    static func registerType(types: UIUserNotificationType, categories: Set<UIUserNotificationCategory>?) {
         let app = UIApplication.sharedApplication()
         
-        let settings = UIUserNotificationSettings(forTypes: types as! UIUserNotificationType, categories: categories)
+        let settings = UIUserNotificationSettings(forTypes: types, categories: categories)
         app.registerUserNotificationSettings(settings)
         app.registerForRemoteNotifications()
     }
     
-    class func didFailToRegister(error: NSError) {
+    static func didFailToRegister(error: NSError) {
         SwAPNs.failToRegisterPushHandler?(error)
     }
     
-    class func didRegisterDeviceToken(deviceToken: NSData) {
+    static func didRegisterDeviceToken(deviceToken: NSData) {
         SwAPNs.registerDeviceTokenHandler?(deviceToken)
     }
     
-    class func pushTypes() -> (pushBadge: Bool, pushSound: Bool, pushAlert: Bool) {
+    static func pushTypes() -> (pushBadge: Bool, pushSound: Bool, pushAlert: Bool) {
         var pushBadge = false
         var pushSound = false
         var pushAlert = false
@@ -146,7 +146,7 @@ private class Push: NSObject {
         return (pushBadge, pushSound, pushAlert)
     }
     
-    class func receivedPush(userInfo: [NSObject : AnyObject]) {
+    static func receivedPush(userInfo: [NSObject : AnyObject]) {
         if SwAPNs.canReceivedPush == false {
             return
         }
@@ -165,11 +165,11 @@ private class Push: NSObject {
         SwAPNs.receivedAnyHandler?(userInfo)
     }
     
-    class func receivedBackgroundFetch(userInfo: [NSObject : AnyObject], completion: (UIBackgroundFetchResult) -> Void) {
+    static func receivedBackgroundFetch(userInfo: [NSObject : AnyObject], completion: (UIBackgroundFetchResult) -> Void) {
         SwAPNs.backgroundFetchHandler?(userInfo, completion)
     }
    
-    class func receivedHandleAction(identifier: String?, userInfo: [NSObject : AnyObject], completion: () -> Void) {
+    static func receivedHandleAction(identifier: String?, userInfo: [NSObject : AnyObject], completion: () -> Void) {
         SwAPNs.handleActionHandler?(identifier, userInfo, completion)
     }
 }
